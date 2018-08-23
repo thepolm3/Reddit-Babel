@@ -102,12 +102,12 @@ def main():
 
         text = ''.join([ch for ch in text[len(KEYWORD):] if ch in ALLOWED_CHARS])
 
-        print(f'request by /u/{comment.author.username} to find "{text}"')
+        print(f'request by /u/{comment.author.name} to find "{text}"')
 
         urls = list(babel_search(text))
         reply_text = REPLY_TEMPLATE.format(url=urls[mode])
 
-        print(f'Replying to /u/{comment.author.username} in {comment.permalink}')
+        print(f'Replying to /u/{comment.author.name} in {comment.permalink}')
 
         comment.reply(reply_text)
         processed_comments.add(comment.id)
