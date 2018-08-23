@@ -1,6 +1,6 @@
 # Reddit-Babel
 reddit bot to interface with the [library of babel](libraryofbabel.info)
-currently /u/Babel_Bot
+currently [/u/Babel_Bot](https://www.reddit.com/user/Babel_Bot)
 
 # Requirements
 * [Python 3.6+](https://python.org)
@@ -14,4 +14,4 @@ currently /u/Babel_Bot
 * !babel4 for the text in the title
 
 # Info and discussion
-/r/babel_bot
+[/r/babel_bot](https://www.reddit.com/r/babel_bot/)
