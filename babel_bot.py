@@ -55,7 +55,7 @@ def main():
     """main routine"""
 
     print('Getting reddit instance')
-    
+
     reddit = praw.Reddit(client_id=client_id,
                      client_secret=client_secret,
                      password=password,
@@ -112,7 +112,12 @@ def main():
 
         print(f'Replying to /u/{comment.author.name} in {comment.permalink}')
 
-        comment.reply(reply_text)
+        try:
+            comment.reply(reply_text)
+
+        except Exception as e:
+            print(f'Error on comment {comment.permalink}:\n{e}\n ignoring')
+
         processed_comments.add(comment.id)
 
 
