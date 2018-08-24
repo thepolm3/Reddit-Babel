@@ -100,7 +100,8 @@ def main():
         if text[len(KEYWORD)] in '1234':
             mode = int(text[len(KEYWORD)]) - 1
 
-        text = ''.join([ch for ch in text[len(KEYWORD):] if ch in ALLOWED_CHARS])
+        text = ''.join([ch for ch in text[len(KEYWORD):] if ch in ALLOWED_CHARS]).strip()
+
 
         print(f'request by /u/{comment.author.name} to find "{text}"')
 
