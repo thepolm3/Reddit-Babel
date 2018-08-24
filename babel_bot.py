@@ -32,13 +32,6 @@ HTML_REGEX = re.compile("postform\\(" + \
     "'([0-9]+)','([0-9]+)'(,'([0-9]+)','([0-9]+)')?\\)")
 VALID_MATCHES = (0, 3, 4, 6)
 
-reddit = praw.Reddit(client_id=client_id,
-                     client_secret=client_secret,
-                     password=password,
-                     username=username,
-                     user_agent=f'Python:babel_bot:v1 (by /u/thepolm3)',
-                     )
-
 
 def babel_search(text):
     """searches the library of babel for a string and returns the URL of the page it's on"""
@@ -60,6 +53,15 @@ def babel_search(text):
 
 def main():
     """main routine"""
+
+    print('Getting reddit instance')
+    
+    reddit = praw.Reddit(client_id=client_id,
+                     client_secret=client_secret,
+                     password=password,
+                     username=username,
+                     user_agent=f'Python:babel_bot:v1 (by /u/thepolm3)',
+                     )
 
     processed_comments = set()
 
