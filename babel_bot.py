@@ -1,13 +1,14 @@
-"""Summon Babel_Bot on reddit with !babel <sometext> to have
+"""Summon Babel_Bot on reddit with /u/babel_bot <sometext> to have
 the relevant page linked to you
 
 author /u/thepolm3
 """
-
+#TODO replace non alhabet characters with alphabet qeuivalents, e.g / -> .slash.
 
 import re
 import requests
 import praw
+import time
 from secret import client_id, client_secret, username, password
 
 with open('subreddits.txt') as f:
@@ -15,6 +16,7 @@ with open('subreddits.txt') as f:
 
 KEYWORD = '!babel'
 DOWNVOTE_THRESHOLD = -5
+MENTION_NAME = f'/u/{username}'.lower()
 
 REPLY_TEMPLATE = "[Here you go]({url})    \n[I'm a bot, beep boop](/r/babel_bot)"
 
@@ -32,9 +34,9 @@ HTML_REGEX = re.compile("postform\\(" + \
     "'([0-9]+)','([0-9]+)'(,'([0-9]+)','([0-9]+)')?\\)")
 VALID_MATCHES = (0, 3, 4, 6)
 
-
 def babel_search(text):
     """searches the library of babel for a string and returns the URL of the page it's on"""
+
     r = requests.post(SEARCH_URL, {'find':text})
     matches = HTML_REGEX.findall(r.text)
 
@@ -51,76 +53,75 @@ def babel_search(text):
 
         yield BOOK_URL.format(**data)
 
-def main():
+def get_valid_string(string, valid_chars):
+    """gets a string only containing valid_chars"""
+
+    return ''.join([ch for ch in string if ch in valid_chars])
+
+def main(reddit):
     """main routine"""
 
-    print('Getting reddit instance')
-
-    reddit = praw.Reddit(client_id=client_id,
-                     client_secret=client_secret,
-                     password=password,
-                     username=username,
-                     user_agent=f'Python:babel_bot:v1 (by /u/thepolm3)',
-                     )
-
-    processed_comments = set()
-
-    print('Performing setup tasks')
-    bot = reddit.redditor(username)
-
-    for comment in bot.comments.new(limit=None):
-        if comment.parent().id not in processed_comments:
-            processed_comments.add(comment.parent().id)
+    for comment in reddit.user.me().comments.new(limit=None):
 
         if comment.score <= DOWNVOTE_THRESHOLD:
             print(f'Deleting {comment.permalink} at {comment.score} votes')
             comment.delete()
 
-    print(f'Running {username}')
-    subreddits = reddit.subreddit('+'.join(ACTIVE_SUBREDDITS))
-    for comment in subreddits.stream.comments():
+    for mention in reddit.inbox.mentions(limit=None):
 
-        #We've already done this one
-        if comment.id in processed_comments:
+        #we've already done this one
+        if not mention.new:
             continue
 
-        text = comment.body.lower()
+        text = mention.body.lower()
+        mention_index = text.lower().find(MENTION_NAME) + len(MENTION_NAME)
 
-        #too short to contain our keyword
-        if len(text) <= len(KEYWORD) + 1:
+        if mention_index == -1:
+            print(f'ERROR: not mentionend in mention {mention.id}, skipping')
+            mention.mark_read()
+            continue
+
+        text = get_valid_string(text[mention_index:], ALLOWED_CHARS).strip()
+
+        #text didn't contain legal characters (can happen e.g with numbers or just spaces)
+        if len(text) == 0:
             continue
 
         #too long to search in babel
-        if len(text) > 3200 - len(KEYWORD):
+        if len(text) > 3200:
             continue
 
-        #an unrelated comment
-        if not text.startswith(KEYWORD):
-            continue
+        print(f'request by /u/{mention.author.name} to find "{text}"')
 
-        mode = 0
-        if text[len(KEYWORD)] in '1234':
-            mode = int(text[len(KEYWORD)]) - 1
+        print('Getting link from library of babel...')
 
-        text = ''.join([ch for ch in text[len(KEYWORD):] if ch in ALLOWED_CHARS]).strip()
+        url = list(babel_search(text))[FULL_MATCH]
+        reply_text = REPLY_TEMPLATE.format(url=url)
 
-
-        print(f'request by /u/{comment.author.name} to find "{text}"')
-
-        urls = list(babel_search(text))
-        reply_text = REPLY_TEMPLATE.format(url=urls[mode])
-
-        print(f'Replying to /u/{comment.author.name} in {comment.permalink}')
+        print(f'Replying to /u/{mention.author.name} in {reddit.comment(mention.id).permalink}')
 
         try:
-            comment.reply(reply_text)
+            mention.reply(reply_text)
 
         except Exception as e:
             print(f'Error on comment {comment.permalink}:\n{e}\n ignoring')
-
-        processed_comments.add(comment.id)
+       
+        mention.mark_read()
 
 
 if __name__ == '__main__':
+    print('Getting reddit instance')
+
+    reddit = praw.Reddit(client_id=client_id,
+                 client_secret=client_secret,
+                 password=password,
+                 username=username,
+                 user_agent=f'Python:babel_bot:v1 (by /u/thepolm3)',
+                 )
+
+    print(f'Running babel_bot on /u/{username}')
+    while True:
+        main(reddit)
+        time.sleep(5)
+
     #print(list(babel_search('testing program')))
-    main()
