@@ -11,9 +11,6 @@ import praw
 import time
 from secret import client_id, client_secret, username, password
 
-with open('subreddits.txt') as f:
-    ACTIVE_SUBREDDITS = f.read().split('\n')
-
 KEYWORD = '!babel'
 DOWNVOTE_THRESHOLD = -5
 MENTION_NAME = f'/u/{username}'.lower()
