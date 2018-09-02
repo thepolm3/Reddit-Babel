@@ -11,7 +11,6 @@ import praw
 import time
 from secret import client_id, client_secret, username, password
 
-KEYWORD = '!babel'
 DOWNVOTE_THRESHOLD = -5
 MENTION_NAME = f'/u/{username}'.lower()
 
@@ -113,7 +112,7 @@ if __name__ == '__main__':
                  client_secret=client_secret,
                  password=password,
                  username=username,
-                 user_agent=f'Python:babel_bot:v1 (by /u/thepolm3)',
+                 user_agent='Python:babel_bot:v1 (by /u/thepolm3)',
                  )
 
     print(f'Running babel_bot on /u/{username}')
